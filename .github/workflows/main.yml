@@ -1,31 +1,28 @@
-name: Deploy to GitHub Pages
+name: Run and Display Output of All Root Files
 
 on:
   push:
     branches:
-      - main  # Atur ini ke branch yang akan di-deploy
+      - main  # Jalankan workflow setiap ada push ke branch 'main'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  run-all:
+    runs-on: ubuntu-latest  # Jalankan workflow di server Ubuntu
 
     steps:
-    - name: Checkout the repository
-      uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v3  # Checkout kode dari repositori
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
+    - name: Grant execute permissions for all files in the root directory
+      run: chmod +x ./*  # Beri izin eksekusi pada semua file di root direktori
 
-    - name: Install dependencies
-      run: npm install
-
-    - name: Build the project
-      run: npm run build
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build  # Sesuaikan dengan folder hasil build proyek kamu
+    - name: Run all executable files and display output
+      run: |
+        for file in $(ls -p | grep -v /); do  # Loop semua file di root direktori
+          echo "Running $file..."  # Tampilkan nama file yang sedang dijalankan
+          output=$(./$file)  # Simpan output dari eksekusi file
+          echo "$output"  # Tampilkan hasil output di log
+          if [ $? -ne 0 ]; then
+            echo "Error running $file"  # Jika ada error, tampilkan pesan error
+          fi
+        done
